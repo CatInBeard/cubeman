@@ -1,0 +1,734 @@
+<html>
+	<head>
+		<title>
+			Cubeman
+		</title>
+		<meta charset='utf-8'>
+		<style>
+			body{
+				background-color:black;
+			}
+			canvas{
+				margin-top:10vh;
+				margin-left:calc(-600px + 50vw);
+				border:1px black solid;
+				background-color:white;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas onclick='start(event.offsetX,event.offsetY)' id='cnv' width=1250 height=700 oncontextmenu='makewall(event.offsetX,event.offsetY); return false;'>Canvas does not support in Your browser =(</canvas>
+		<audio id='main_sound' preload='auto' src='sound/Michael_Zhitkov-Main_theme_[OST_Cubeman].mp3' loop></audio>
+		<audio id='fail_sound' preload='auto' src='sound/Michael_Zhitkov-The_end_of_game_[OST_Cubeman].mp3'></audio>
+		<audio id='shoot_sound' preload='auto' src='sound/shoot.mp3'></audio>
+		<script>
+			console.log('Powered by CUBE ENGINE v1.3.2');//CUBE ENGINE v1.3.2
+			var ctx;
+			var h;
+			var w;
+			var looper;
+			var started=false;
+			var objects=[];
+			var passable=[];
+			var bullets=[];
+			var ai=[];
+			var static_killer=[];
+			var screenx=0;
+			var screeny=-100;
+			var death_y=410;
+			var fps=50;
+			var anim1=[];
+			var anim2=[];
+			var anim_fire=[];
+			var bgxsize=128;
+			var bgysize=128;
+			var bgimage;
+			var shooted=false;
+			var ggimg=new Image(400,200);
+			var timer;
+			ggimg.src='img/gameover.png';
+			var blockimg=new Image(400,200);
+			blockimg.src='img/block.png';
+			var charimg=new Image(97,94);
+			charimg.src='img/character_anim1/8.png';
+			var charimgw=new Image(97,94);
+			charimgw.src='img/character_anim1/1.png';
+			function init(){
+					for(var i=1;i<=9;i++){
+					mg=new Image(97,94);
+					mg.src='img/character_anim1/'+i+'.png';
+					anim1[i]=mg;
+					}
+					for(var i=1;i<=9;i++){
+					mg=new Image(97,94);
+					mg.src='img/character_anim2/'+i+'.png';
+					anim2[i]=mg;
+					}
+					for(var i=0;i<=20;i++){
+					mg=new Image();
+					mg.src='img/fire/'+i+'.png';
+					anim_fire[i]=mg;
+					}
+					bgimage=new Image(bgxsize,bgysize);
+					bgimage.src='img/bg.png';
+				objects.push(new create_character(0,10,125,0,'img/main.png',75,75,0,0,10));//Character
+				
+					
+				ai.push(new create_turret(2534,91,'img/turret.png',104,78,0,1000,56));	//turret
+				passable.push(new create_passable(2488,91,'img/osnova.png',70,110));	//turret base
+				ai.push(new create_turret(5336,100,'img/turret.png',104,78,0,1000,56));	
+				passable.push(new create_passable(5290,100,'img/osnova.png',70,110));	
+				ai.push(new create_turret(6580,97,'img/turret.png',104,78,0,1000,56));	
+				passable.push(new create_passable(6534,97,'img/osnova.png',70,110));	
+
+				objects.push(new create_object(50,300,'img/block.png',150,30));//Solid sprite
+				objects.push(new create_object(-100,0,'img/block.png',30,350));//
+				objects.push(new create_object(357,270,'img/block.png',150,30));//
+				objects.push(new create_object(703,242,'img/block.png',150,30));//
+				objects.push(new create_object(901,251,'img/block.png',150,30));//
+				objects.push(new create_object(1209,378,'img/block.png',150,30));//
+				objects.push(new create_object(1468,411,'img/block.png',150,30));//
+				objects.push(new create_object(1700,323,'img/block.png',150,30));//
+				objects.push(new create_object(1966,201,'img/grass.png',1000,100));//
+				objects.push(new create_object(3099,314,'img/block.png',150,30));//
+				objects.push(new create_object(3335,272,'img/block.png',150,30));//
+				objects.push(new create_object(3662,216,'img/block.png',150,30));//
+				objects.push(new create_object(5090,210,'img/block.png',400,55));//
+				objects.push(new create_object(5568,324,'img/block.png',150,30));//
+				objects.push(new create_object(5978,378,'img/block.png',150,30));//
+				objects.push(new create_object(6210,209,'img/block.png',150,30));//
+				objects.push(new create_object(6327,246,'img/block.png',15,90));//
+				objects.push(new create_object(6347,343,'img/block.png',150,30));//
+				objects.push(new create_object(6500,384,'img/block.png',150,30));//
+				objects.push(new create_object(6661,381,'img/block.png',150,30));//
+				objects.push(new create_object(6500,207,'img/block.png',150,30));//
+				objects.push(new create_object(6928,279,'img/block.png',150,30));//
+				objects.push(new create_object(7269,210,'img/block.png',150,30));//
+				objects.push(new create_object(7468,239,'img/grass.png',1300,100));//
+				objects.push(new create_object(8774,239,'img/block.png',150,30));//
+				objects.push(new create_object(8969,192,'img/block.png',150,30));//
+				objects.push(new create_object(9165,75,'img/block.png',150,30));//
+				objects.push(new create_object(9561,386,'img/block.png',150,30));//
+				objects.push(new create_object(9790,317,'img/block.png',150,30));//
+				objects.push(new create_object(10102,253,'img/block.png',150,30));//
+				objects.push(new create_object(10242,139,'img/block.png',150,30));//
+				objects.push(new create_object(10543,247,'img/block.png',150,30));//
+				objects.push(new create_object(10894,345,'img/block.png',150,30));//
+				objects.push(new create_object(11192,251,'img/block.png',150,30));//
+				objects.push(new create_object(11517,143,'img/block.png',150,30));//
+				objects.push(new create_object(11965,219,'img/block.png',150,30));//
+				objects.push(new create_object(12429,329,'img/block.png',450,30));//
+
+				objects.push(new create_moving_object(3832,210,4832,'img/block.png',250,10,8));//Moving object
+							
+				static_killer.push(new create_static_killer(7488,189,'img/spine.png',100,50,static_killer.length));//spine
+				static_killer.push(new create_static_killer(7738,189,'img/spine.png',100,50,static_killer.length));//
+				static_killer.push(new create_static_killer(7988,189,'img/spine.png',100,50,static_killer.length));//
+				static_killer.push(new create_static_killer(8250,189,'img/spine.png',100,50,static_killer.length));//
+				static_killer.push(new create_static_killer(8510,189,'img/spine.png',100,50,static_killer.length));//
+				
+				passable.push(new create_passable(100,40,'img/welcome.png',144,103));//sprite
+				passable.push(new create_passable(300,130,'img/rules.png',164,100));//
+								
+				passable.push(new create_fire(-500,h-190,181,103,14000));// Fire
+			}
+/*----------------------ENGINE--------------------------------------------------------------------*/
+			window.onload=function(){
+				ctx=cnv.getContext('2d');
+				h=cnv.height;
+				w=cnv.width;
+				init();
+				hello();				
+			}
+			function hello(){
+				started=false;
+				ctx.clearRect(0,0,w,h);
+				ctx.font = "48px serif";
+				ctx.fillText("Press any key to start", 400, 350);
+			}
+			function start(x,y){
+				if(x&y){
+					clicker(x,y);
+				}
+				if(!started){
+					timer= new Date();
+					fail_sound.pause();
+					fail_sound.currentTime = 0.0;
+					screenx=0;
+					screeny=-100;
+					started=true;
+					ctx.clearRect(0,0,w,h);
+					main_sound.play();
+					looper=setInterval(loop,1000/fps);
+				}
+			}
+			function loop(){
+				calc();
+				draw();
+				death();
+				if(objects[0].x-screenx>2*w/3){
+					screenx+=w/3;
+				}
+				if(objects[0].x-screenx<w/10){
+					screenx-=w/3;
+				}
+			}
+			function bcollision(n){
+				var br=false;
+				if(bullets[n]){
+					for(var i=0; i<objects.length;i++){
+						if(((bullets[n].x+bullets[n].sizex)>objects[i].x)&((bullets[n].x+bullets[n].sizex)<(objects[i].x+objects[i].sizex))||
+						((bullets[n].x)>objects[i].x)&((bullets[n].x)<(objects[i].x+objects[i].sizex))){
+							if(((bullets[n].y+bullets[n].sizey)>objects[i].y)&((bullets[n].y+bullets[n].sizey)<(objects[i].y+objects[i].sizey))||
+							((bullets[n].y)>objects[i].y)&((bullets[n].y)<(objects[i].y+objects[i].sizey))){
+								if(i==0){
+									shooted=true;
+								}
+								br=true;
+							}
+						}
+					}
+				}
+				return br;
+			}
+			function scollision(n){
+				if(static_killer[n]){
+					if(((static_killer[n].x+static_killer[n].sizex)>objects[0].x)
+						&((static_killer[n].x+static_killer[n].sizex)<(objects[0].x+objects[0].sizex))
+					||((static_killer[n].x)>objects[0].x)
+						&((static_killer[n].x)<(objects[0].x+objects[0].sizex))
+					||((static_killer[n].x)<objects[0].x)
+						&((static_killer[n].x+static_killer[n].sizex)>(objects[0].x+objects[0].sizex))){
+						if(((static_killer[n].y+static_killer[n].sizey)>objects[0].y)
+							&((static_killer[n].y+static_killer[n].sizey)<(objects[0].y+objects[0].sizey))
+						||((static_killer[n].y)>objects[0].y)
+							&((static_killer[n].y)<(objects[0].y+objects[0].sizey))){							
+							shooted=true;
+						}
+					}
+				}
+			}
+			function collisiony(number){
+				var a=false;
+					for(var i=0; i<objects.length;i++){
+						if(number!=i){
+							if((((objects[number].y+objects[number].sizey<objects[i].y+objects[number].gravity)
+								&(objects[number].y+objects[number].sizey>objects[i].y-objects[number].gravity)))
+								&(!((objects[number].x+objects[number].sizex<objects[i].x)
+							||(objects[number].x>objects[i].x+objects[i].sizex)))){
+								if(objects[number].vy>=0){
+									objects[number].y=objects[i].y-objects[number].sizey;
+									a=true;
+								}
+								else{
+									objects[number].y-=2*objects[number].vy;
+									objects[number].vy=-0.0001;
+								}
+							}
+							
+							if(((objects[number].y<objects[i].y+objects[i].sizey+objects[number].gravity)
+								&(objects[number].y>objects[i].y+objects[i].sizey-objects[number].gravity))
+								&(!((objects[number].x+objects[number].sizex<objects[i].x)||(objects[number].x>objects[i].x+objects[i].sizex)))){
+								objects[number].vy=-0.0001;
+							}
+							
+							if((((objects[number].y<objects[i].y+objects[number].gravity)
+								&(objects[number].y>objects[i].y-Math.abs(objects[number].vy))))
+								&(!((objects[number].x+objects[number].sizex<objects[i].x)
+							||(objects[number].x>objects[i].x+objects[i].sizex)))){
+								objects[number].y-=objects[number].vy;
+								objects[number].vy=-0.0001;
+							}
+						}
+					}
+				return a;
+			}
+			function collisionx(number){
+				var a=false;
+				for(var i=0; i<objects.length;i++){
+					if(number!=i){
+						if(
+						(!((objects[number].x+objects[number].sizex<objects[i].x)
+							||(objects[number].x>objects[i].x+objects[i].sizex)))
+						&((((objects[number].y+objects[number].sizey>objects[i].y)||(objects[number].y>objects[i].y))
+							&(objects[number].y<objects[i].y+objects[i].sizey))
+						||((objects[number].y<objects[i].y)&(objects[number].y+objects[number].sizey>objects[i].y+objects[i].sizey)))){
+							a=i;
+						}
+					}
+				}
+				return a;
+			}
+			function create_character(number,gravity,sx,sy,img,sizex,sizey,vx,vy,v){
+				var that=this;
+				that.type='character';
+				that.gravity=gravity;
+				that.x=sx;
+				that.y=sy;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				this.number;
+				this.vx=vx;
+				this.vy=vy;
+				this.direction=0;
+				this.animation=1;
+				that.v=v;
+				that.i=1;
+				that.keyparam='up';
+				that.first=true;
+				that.nomove=false;
+				that.canjump=25;
+				this.anim1= function(xx,yy){
+					if(that.i>=9){that.i=1;}
+					that.i++;
+					ctx.drawImage(anim1[that.i], that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+				}
+				this.anim2= function(xx,yy){
+					if(that.i>=9){that.i=1;}
+					that.i++;
+					ctx.drawImage(anim2[that.i], that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+				}
+				this.move=function(p){
+					switch(p){
+					case 'jump':
+						if(that.canjump>25){
+							if(that.vy==0){
+								that.y-=that.gravity;
+								that.vy=-70;
+								that.nomove=false;
+								that.canjump=0;
+							}
+						}
+					break;
+					case 'left':
+					if(that.nomove!='left'){
+						that.direction=1;
+						that.animation=1;
+						that.nomove=false;
+					}
+					break;
+					case 'right':
+					if(that.nomove!='right'){
+						that.direction=-1;
+						that.animation=2;
+						that.nomove=false;
+						}
+					break;
+					case 'keyup':
+						that.direction=0;
+					break;
+					}
+				}
+				that.phys= function(){
+				if(that.canjump<26){
+					that.canjump+=1;
+				}
+				var nocol=true;
+					if(that.gravity){
+						if(!collisiony(number)){
+							that.first=true;
+							if(that.vy<that.gravity){
+								that.vy+=that.gravity;
+							}
+						}
+						else{
+							if(that.first){
+								that.firts=false;
+								that.vy=0;
+							}
+						}
+						var tmp;
+						if(tmp=collisionx(number)){
+							if(objects[tmp].vx==undefined){
+							nocol=false;
+								if(objects[tmp].x>that.x){
+								that.nomove='left';
+									that.x+=(objects[tmp].x-that.x-that.sizex-1);
+								}
+								else{
+									that.x+=(objects[tmp].x+objects[tmp].sizex-that.x+1);
+									that.nomove='right';
+								}
+								that.vx=0;
+								that.direction=0;
+							}else{
+								that.vx=3*objects[tmp].vx*Math.sign(-objects[tmp].x+that.x);
+							}
+						}
+						else{
+								that.vx=that.direction*v;
+						}
+						that.y+=that.vy;
+						that.x+=that.vx;
+					}
+					if(nocol){
+						this.move(that.keyparam);
+					}
+				}
+				that.draw= function(){
+					switch(that.animation){
+						case 0:
+						ctx.drawImage(that.img, that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+						break;
+						case 1:
+						that.anim1(that.x-screenx, that.y-screeny);
+						break;
+						case 2:
+						that.anim2(that.x-screenx, that.y-screeny);
+						break;
+					}
+				}					
+			}
+			function create_fire(sx,sy,sizex,sizey,longx){
+				var that=this;
+				that.x=sx;
+				that.y=sy;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				var tmp=parseInt(longx/sizex)-1;
+					if(longx%sizex!=0){
+						tmp++;
+				}
+				that.lengthx=tmp;
+				that.animrandomer=[];
+				for(var n=0;n<=that.lengthx;n++){
+					that.animrandomer.push(parseInt(Math.random()*20));
+				}
+				that.i=0;
+				that.draw= function(){
+					for(var z=0; z<=that.lengthx;z++){
+						var tmp=(parseInt(that.i/2)+that.animrandomer[z])%20;
+						if((z-1)*that.sizex>screenx+that.x&(z-parseInt(screenx/that.sizex)-1)*that.sizex<screenx+w-that.x){
+							ctx.drawImage(anim_fire[tmp], that.x-screenx+z*sizex, that.y-screeny,that.sizex,that.sizey);
+						}
+					}
+					that.i++;
+						if(that.i>=40){
+							that.i=0;
+						}
+				}					
+			}
+			function create_passable(sx,sy,img,sizex,sizey){
+				var that=this;
+				that.x=sx;
+				that.y=sy;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				that.draw= function(){
+					ctx.drawImage(that.img, that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+				}					
+			}
+			function create_turret(sx,sy,img,sizex,sizey,shoot,radius,shootdist){
+				var that=this;
+				this.x=sx;
+				this.y=sy;
+				this.sizex=sizex;
+				this.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				this.alpha=100;
+				that.shoot=shoot;
+				that.shootdist=shootdist;
+				that.i=2.5*fps+1;
+				that.radius=radius;
+				that.draw= function(){
+					ctx.save();
+					ctx.translate(that.x-screenx,that.y-screeny);
+					ctx.rotate(that.alpha);
+					ctx.drawImage(that.img, -that.sizex/2, -that.sizey/2,that.sizex,that.sizey);
+					ctx.restore();
+				}
+				that.AI= function(){
+					that.alpha=Math.atan(((objects[that.shoot].y+objects[that.shoot].sizey/2)-(that.y))/((objects[that.shoot].x+objects[that.shoot].sizex/2)-(that.x)));
+					if(that.x>objects[that.shoot].x+objects[that.shoot].sizex){
+						that.alpha=Math.PI+that.alpha;
+					}
+					if((Math.pow(that.x+that.sizex-(objects[that.shoot].x+objects[that.shoot].sizex/2),2)+Math.pow(that.y+that.sizey-(objects[that.shoot].y+objects[that.shoot].sizey/2),2))<Math.pow(that.radius,2)){
+						that.i++;
+						if(that.i>fps*2.5){
+							that.i=0;
+							shoot_sound.play();
+							bullets.push(new create_bullet(that.x+Math.cos(that.alpha)*that.shootdist,that.y+Math.sin(that.alpha)*that.shootdist,'img/bullet.png',18,18,3*Math.cos(that.alpha),3*Math.sin(that.alpha),bullets.length));//Снаряды
+						}
+					}
+				}
+				that.phys= function(){
+					
+				}						
+			}
+			function create_object(sx,sy,img,sizex,sizey){
+				var that=this;
+				that.x=sx;
+				that.y=sy;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				this.animation=0;
+				that.first=true;
+				that.phys= function(){
+				}
+				that.draw= function(){
+					if(that.animation==0){
+						ctx.drawImage(that.img, that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+					}
+				}					
+			}
+			function create_moving_object(sx,sy,ex,img,sizex,sizey,vx){
+				var that=this;
+				that.x=sx;
+				that.y=sy;
+				that.ex=ex;
+				that.sx=that.x;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				this.vx=vx;
+				this.direction=0;
+				that.phys= function(){
+					if(!that.direction){
+						that.x+=that.vx;
+						if(that.x>that.ex){
+							that.direction=1;
+						}
+					}
+					else{
+						that.x-=that.vx;
+						if(that.x<that.sx){
+							that.direction=0;
+						}
+					}
+				}
+				that.draw= function(){
+						ctx.drawImage(that.img, that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+				}					
+			}
+			function create_static_killer(sx,sy,img,sizex,sizey,n){
+				var that=this;
+				that.number=n;
+				that.x=sx;
+				that.y=sy;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				that.phys= function(){
+					scollision(that.number);
+				}
+				that.draw= function(){
+					ctx.drawImage(that.img, that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+				}					
+			}
+			function create_bullet(sx,sy,img,sizex,sizey,vx,vy,n){
+				var that=this;
+				that.number=n;
+				that.x=sx;
+				that.y=sy;
+				that.sizex=sizex;
+				that.sizey=sizey;
+				this.img=new Image(sizex,sizey);
+				this.img.src=img;
+				this.vx=vx;
+				this.vy=vy;
+				that.phys= function(){
+					if(bcollision(that.number)){
+						bullets[that.number]=0;
+					}
+					that.y+=that.vy;
+					that.x+=that.vx;
+				}
+				that.draw= function(){
+					ctx.drawImage(that.img, that.x-screenx, that.y-screeny,that.sizex,that.sizey);
+				}					
+			}
+			function death(){
+				if((objects[0].y>death_y)||(shooted)&window.bulletproof== undefined){
+					gg();
+				}
+				else{ 
+					if(objects[0].x>12544){
+						win();
+					}
+				}	
+			}
+			function draw_background(n){
+				var bgxstart=-((screenx)%bgxsize);
+				if(bgxstart>0){
+					bgxstart-=bgxsize;
+				}
+				var bgystart=-((screeny)%bgysize);
+				if(bgystart<0){
+					bgystart-=bgysize;
+				}
+				for (var i=bgxstart; i<=parseInt(Math.abs(screenx)+w);i+=bgxsize){
+					for (var j=bgystart-128; j<=parseInt(Math.abs(screeny)+h);j+=bgysize){
+						ctx.drawImage(bgimage, i, j);
+					}
+				}
+				if(n){
+					for(var i=0; i<passable.length;i++){
+						passable[i].draw();
+					}
+				}
+			}
+			function draw(){
+				ctx.clearRect(0,0,w,h);
+				draw_background(1);
+				for(var i=0; i<objects.length;i++){
+					if(objects[i]){
+						objects[i].draw();
+					}
+				}
+				for(var i=0; i<static_killer.length;i++){
+					if(static_killer[i]){
+						static_killer[i].draw();
+					}
+				}
+				for(var i=0; i<bullets.length;i++){
+					if(typeof(bullets[i])=='object'){
+						bullets[i].draw();
+					}
+				}
+				for(var i=0; i<ai.length;i++){
+					if(ai[i]){
+						ai[i].draw();
+					}
+				}
+			}
+			function calc(){
+				for(var i=0; i<objects.length;i++){
+					if(objects[i]){
+						objects[i].phys();
+					}
+				}
+				for(var i=0; i<static_killer.length;i++){
+					if(static_killer[i]){
+						static_killer[i].phys();
+					}
+				}
+				for(var i=0; i<ai.length;i++){
+					if(ai[i]){
+						ai[i].AI();
+						ai[i].phys();
+					}
+				}
+				for(var i=0; i<bullets.length;i++){
+					if(typeof(bullets[i])=='object'){
+						bullets[i].phys();
+					}
+				}
+			}
+			function gg(){
+				main_sound.pause();
+				main_sound.currentTime = 0.0;
+				fail_sound.play();
+				clearInterval(looper);
+				objects = [];
+				bullets = [];
+				passable=[];
+				ai=[];
+				static_killer=[];
+				shooted=false;
+				init();
+				ctx.clearRect(0,0,w,h);
+				draw_background(0);
+				ctx.drawImage(ggimg, 400, 100,400,200);
+				ctx.drawImage(blockimg, 400, 450,300,60);
+				ctx.drawImage(charimg, 525, 360,97,94);
+				setTimeout(hello, 4000);
+			}
+			function win(){
+				main_sound.pause();
+				main_sound.currentTime = 0.0;
+				clearInterval(looper);
+				objects = [];
+				bullets = [];
+				passable=[];
+				ai=[];
+				static_killer=[];
+				shooted=false;
+				init();
+				ctx.clearRect(0,0,w,h);
+				draw_background(0);
+				ctx.fillStyle="#11DD11";
+				ctx.fillRect(300,100,600,100);
+				ctx.fillStyle="#000000";
+				ctx.drawImage(blockimg, 400, 450,300,60);
+				ctx.drawImage(charimgw, 525, 360,97,94);
+				ctx.font = "48px serif";
+				timer-=new Date();
+				ctx.fillText("You Win! "+Math.ceil(timer/60000)+"min "+Math.ceil((timer/1000)%60)+"sec", 370, 170);
+				started=false;
+			}
+			function keyd(e){
+				start();
+				switch(e.keyCode){
+					case 32:
+						objects[0].move('jump');
+					break;
+					case 38:
+						objects[0].move('jump');
+					break;
+					case 87:
+						objects[0].move('jump');
+					break;
+					case 68:
+						objects[0].keyparam='left';
+					break;
+					case 39:
+						objects[0].keyparam='left';
+					break;
+					case 65:
+						objects[0].keyparam='right';
+					break;
+					case 37:
+						objects[0].keyparam='right';
+					break;
+				}
+			}
+			function keyu(e){
+				switch(e.keyCode){
+					case 39:
+						objects[0].keyparam='keyup';
+					break;
+					case 68:
+						objects[0].keyparam='keyup';
+					break;
+					case 65:
+						objects[0].keyparam='keyup';
+					break;
+					case 37:
+						objects[0].keyparam='keyup';
+					break;
+				}
+			}
+			addEventListener("keydown", keyd);
+			addEventListener("keyup", keyu);
+			
+
+			function clicker(xx,yy){
+				if(window.testermode!== undefined){
+					console.log("X:"+parseInt(xx+screenx)+" Y:"+parseInt(yy+screeny));
+				}
+			}	
+			function makewall(xx,yy){
+			if(window.testermode!== undefined){
+				console.log("objects.push(new create_object("+parseInt(xx+screenx)+","+parseInt(yy+screeny)+",'img/block.png',150,30));");
+				objects.push(new create_object(xx+screenx,yy+screeny,'img/block.png',150,30));
+			}
+			}
+			//Cheatcodes
+			function bulletproof(){
+				bulletproof=true;
+			}
+			function testermode(){
+				testermode=true;
+			}
+		</script>
+	</body>
+</html>
